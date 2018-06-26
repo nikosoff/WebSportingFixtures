@@ -1,0 +1,56 @@
+﻿@using WebSportingFixtures.ViewModels;
+@using WebSportingFixtures.Core.Models
+@model EventViewModel
+
+@if (Model != null)
+{
+    <form method="post" autocomplete="off">
+        <div>
+            <label asp-for="Home">Name of home team</label>
+            <input asp-for="Home" asp-validation-for="Home" id="homeTeamInput" value="@Model.Home" oninput="getSuggestions('homeTeamInput')" />
+        </div>
+        <div>
+            <label asp-for="Away">Name of away team</label>
+            <input asp-for="Away" asp-validation-for="Away" id="awayTeamInput" value="@Model.Away" oninput="getSuggestions('awayTeamInput')" />
+        </div>
+        <div>
+            <label asp-for="Status">Status</label>
+            <select asp-for="Status" asp-validation-for="Status" asp-items="Html.GetEnumSelectList<Status>()"></select>
+        </div>
+
+        <input type="submit" name="save" value="Save" />
+        <a asp-action="Index">Back</a>
+    </form>
+}
+else
+{
+    <h3>The requested event does not exist</h3>
+    <a asp-action="Index">Back</a>
+}
+
+<script>
+
+    var homeInput = document.getElementById('homeTeamInput');
+    var awayInput = document.getElementById('awayTeamInput');
+
+    function getSuggestions(teamInput) {
+
+        var request = new XMLHttpRequest();
+        var teamInput = "#" + teamInput;
+        request.onreadystatechange = function (response) {
+            if (request.readyState === 4 && request.status === 200) {
+
+                var possibleTeams = JSON.parse(request.responseText);
+                $(teamInput).autocomplete({
+                    source: function (request, response) {
+                        response($.ui.autocomplete.filter(
+                            possibleTeams, ""));
+                    }
+                });
+            }
+        };
+
+        request.open('GET', 'http://localhost:63933/Events/SuggestedTeams?givenTeamName=' + (teamInput == '#homeTeamInput' ? homeInput.value : awayInput.value), true);
+        request.send(null);
+    }
+</script>

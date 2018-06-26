@@ -1,0 +1,30 @@
+﻿@using WebSportingFixtures.Core.Models;
+@model Team
+
+@{
+    ViewBag.Title = "Delete team";
+}
+
+@if (Model != null)
+{
+    <h2>Delete</h2>
+    <h3>Are you sure you want to delete this?</h3>
+
+    <b>Name of team</b>
+    <p>@Model.Name</p>
+    <b>Known name of team</b>
+    <p>@Model.KnownName</p>
+
+    <form method="post" asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" name="delete" value="Delete" />
+        <a asp-action="Index">Back</a>
+    </form>
+}
+else
+{
+    <h3>Team with id: @Url.ActionContext.RouteData.Values["id"] does not exists</h3>
+    <a asp-action="Index">Back</a>
+}
+
+

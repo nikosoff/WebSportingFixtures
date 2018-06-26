@@ -1,0 +1,28 @@
+﻿@using WebSportingFixtures.Core.Models
+@model Team
+
+@{ 
+    ViewBag.Title = "Create team";
+}
+
+<p>@Html.ValidationMessage("PostCreateTeamError")</p>
+
+<form method="post">
+    <div>
+        <label asp-for="Name"></label>
+        <input asp-for="Name" />
+        <span asp-validation-for="Name"></span>
+        <span>@Html.ValidationMessage("PostCreateTeamNameError")</span>
+</div>
+
+    <div>
+        <label asp-for="KnownName"></label>
+        <input asp-for="KnownName" />
+        <span asp-validation-for="KnownName"></span>
+        <span>@Html.ValidationMessage("PostCreateTeamKnownNameError")</span>
+
+    </div>
+
+    <input type="submit" name="save" value="Save" />
+    <a asp-action="Index">Back</a>
+</form>

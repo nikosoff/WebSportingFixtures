@@ -1,0 +1,38 @@
+﻿@using WebSportingFixtures.Core.Models
+@model IEnumerable<Team>
+
+@{
+    ViewBag.Title = "View All Teams";
+}
+
+<a asp-action="Create">Add Team</a>
+<a asp-controller="Home" asp-action="Index">Back</a>
+
+@if (Model.Count() != 0)
+{
+    <table>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Known Name</th>
+        </tr>
+        @foreach (var team in Model)
+        {
+            <tr>
+                <td>@team.Id</td>
+                <td>@team.Name</td>
+                <td>@team.KnownName</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@team.Id">Edit</a>
+                </td>
+                <td>
+                    <a asp-action="Delete" asp-route-id="@team.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </table>
+}
+else
+{
+    <h3>Please press "Add Team" button to add a new team</h3>
+}

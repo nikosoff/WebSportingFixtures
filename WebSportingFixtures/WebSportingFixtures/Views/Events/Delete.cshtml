@@ -1,0 +1,25 @@
+﻿@using WebSportingFixtures.Core.Models
+@model Event
+
+<h2>Delete</h2>
+@if (Model != null)
+{
+    <h3>Are you sure you want to delete this?</h3>
+
+    <b>Event</b>
+    <p>@Model.Home.Name  - @Model.Away.Name</p>
+    <b>Status</b>
+    <p>@Model.Status</p>
+
+    <form method="post">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" name="delete" value="Delete" />
+        <a asp-action="Index">Back</a>
+    </form>
+}
+else
+{
+    <h3>The requested event does not exist</h3>
+    <a asp-action="Index">Back</a>
+}
+

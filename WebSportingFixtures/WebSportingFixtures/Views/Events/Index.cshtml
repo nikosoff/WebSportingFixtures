@@ -1,0 +1,36 @@
+﻿@using WebSportingFixtures.Core.Models;
+@model IEnumerable<Event>
+
+@{
+    ViewBag.Title = "View all events";
+}
+
+<a asp-action="Fetch">Fetch &amp; Store events</a>
+<a asp-action="Create">Add Event</a>
+<a asp-controller="Home" asp-action="Index">Back</a>
+
+<table>
+    <tr>
+        <th>Id</th>
+        <th>Home team</th>
+        <th>Away team</th>
+        <th>Status</th>
+    </tr>
+    @foreach (var ev in Model)
+    {
+        <tr>
+            <td>@ev.Id</td>
+            <td>@ev.Home.Name</td>
+            <td>@ev.Away.Name</td>
+            <td>@ev.Status</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@ev.Id">Edit</a>
+            </td>
+            <td>
+                <a asp-action="Delete" asp-route-id="@ev.Id">Delete</a>
+            </td>
+        </tr>
+    }
+
+
+</table>
