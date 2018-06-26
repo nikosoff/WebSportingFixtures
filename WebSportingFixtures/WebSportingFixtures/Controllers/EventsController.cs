@@ -50,24 +50,24 @@ namespace WebSportingFixtures.Controllers
 
             if (foundExistingEvent != null)
             {
-                ModelState.AddModelError("PostCreateError", $"The event {homeTeamName} - {awayTeamName} is already exists");
+                ModelState.AddModelError("PostCreateEventError", $"The event {homeTeamName} - {awayTeamName} is already exists");
                 return View(eventViewModel);
             }
 
             if (homeTeam == null)
             {
-                ModelState.AddModelError("PostCreateError", $"Home team with name {homeTeamName} does not exist in our database");
+                ModelState.AddModelError("PostCreateEventError", $"Home team with name {homeTeamName} does not exist in our database");
                 return View(eventViewModel);
             }
             else if (awayTeam == null)
             {
-                ModelState.AddModelError("PostCreateError", $"Away team with name {awayTeamName} does not exist in our database");
+                ModelState.AddModelError("PostCreateEventError", $"Away team with name {awayTeamName} does not exist in our database");
                 return View(eventViewModel);
             }
 
             if (homeTeamName == awayTeamName)
             {
-                ModelState.AddModelError("PostCreateError", $"The provided event {homeTeamName} - {awayTeamName} has two teams with the same name. This is not allowed.");
+                ModelState.AddModelError("PostCreateEventError", $"The provided event {homeTeamName} - {awayTeamName} has two teams with the same name. This is not allowed.");
                 return View(eventViewModel);
             }
 
@@ -79,9 +79,18 @@ namespace WebSportingFixtures.Controllers
             };
 
 
-            _sportingFixturesService.CreateEvent(newEvent);
+            bool isEventCreated = _sportingFixturesService.CreateEvent(newEvent);
 
-            return RedirectToAction(nameof(Index));
+            if (isEventCreated)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                ModelState.AddModelError("PostCreateEventError", $"Event \"{newEvent.Home.Name} - {newEvent.Away.Name}\" could not be inserted due to database error");
+                return View();
+            }
+            
         }
 
         [HttpGet]
