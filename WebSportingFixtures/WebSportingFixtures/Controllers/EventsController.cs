@@ -32,6 +32,19 @@ namespace WebSportingFixtures.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            EventViewModel eventViewModel = null;
+            var anEvent = _sportingFixturesService.GetEvent(id);
+
+            if (anEvent != null)
+            {
+                eventViewModel = new EventViewModel() { Home = anEvent.Home.Name, Away = anEvent.Away.Name, Status = anEvent.Status };
+            }
+            return View(eventViewModel);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create([Bind(include: " Home, Away, Status")]EventViewModel eventViewModel)
@@ -59,7 +72,8 @@ namespace WebSportingFixtures.Controllers
                 ModelState.AddModelError("PostCreateEventError", $"Home team with name {homeTeamName} does not exist in our database");
                 return View(eventViewModel);
             }
-            else if (awayTeam == null)
+
+            if (awayTeam == null)
             {
                 ModelState.AddModelError("PostCreateEventError", $"Away team with name {awayTeamName} does not exist in our database");
                 return View(eventViewModel);
@@ -73,8 +87,8 @@ namespace WebSportingFixtures.Controllers
 
             Event newEvent = new Event()
             {
-                Home = new Team() { Id = homeTeam.Id, Name = homeTeam.Name, KnownName=homeTeam.KnownName},
-                Away = new Team() { Id = awayTeam.Id, Name = awayTeam.Name, KnownName = awayTeam.KnownName },
+                Home = new Team { Id = homeTeam.Id, Name = homeTeam.Name, KnownName=homeTeam.KnownName},
+                Away = new Team { Id = awayTeam.Id, Name = awayTeam.Name, KnownName = awayTeam.KnownName },
                 Status = eventViewModel.Status
             };
 
@@ -93,58 +107,61 @@ namespace WebSportingFixtures.Controllers
             
         }
 
-        [HttpGet]
-        public IActionResult Edit(int id)
-        {
-            var anEvent = _sportingFixturesService.GetEvent(id);
-
-            EventViewModel eventViewModel = null;
-            if (anEvent != null)
-            {
-                eventViewModel = new EventViewModel()
-                {
-                    Home = anEvent.Home.Name,
-                    Away = anEvent.Away.Name,
-                    Status = anEvent.Status
-                };
-            }
-            return View(eventViewModel);
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit([Bind(include: "Id, Home, Away, Status")] EventViewModel eventViewModel)
         {
-            var availableTeams = _sportingFixturesService.GetAllTeams();
-            var availableTeamNames = _sportingFixturesService.GetAllTeams().Select(t => t.Name);
-            var teamNameMatches = Enumerable.Empty<string>();
-            bool foundNameMatches;
-            int numberOfMatches = 1;
+            var homeTeamName = eventViewModel.Home;
+            var awayTeamName = eventViewModel.Away;
+            var homeTeam = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.Name == eventViewModel.Home);
+            var awayTeam = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.Name == eventViewModel.Away);
 
-            var newEvent = new Event()
+            if (String.IsNullOrEmpty(homeTeamName) || String.IsNullOrEmpty(awayTeamName))
             {
-                Id = eventViewModel.Id,
-                Home = new Team() { Name = eventViewModel.Home },
-                Away = new Team() { Name = eventViewModel.Away },
-                Status = eventViewModel.Status
-            };
+                return View(eventViewModel);
+            }
 
-            var homeTeamName = newEvent.Home.Name;
-            foundNameMatches = _sportingFixturesService.TryFindBestMatch(homeTeamName, availableTeamNames, out teamNameMatches, numberOfMatches);
-            newEvent.Home.Name = teamNameMatches.ElementAt(0);
-            newEvent.Home.Id = availableTeams.ToList().Find(t => t.Name == newEvent.Home.Name).Id;
+            var foundExistingEvent = _sportingFixturesService.GetAllEvents().ToList().Find(ev => ev.Home.Name == homeTeamName && ev.Away.Name == awayTeamName);
 
-
-            var awayTeamName = newEvent.Home.Name;
-            foundNameMatches = _sportingFixturesService.TryFindBestMatch(awayTeamName, availableTeamNames, out teamNameMatches, numberOfMatches);
-            newEvent.Home.Name = teamNameMatches.ElementAt(0);
-            newEvent.Away.Id = availableTeams.ToList().Find(t => t.Name == newEvent.Away.Name).Id;
+            if (foundExistingEvent != null && foundExistingEvent.Id != eventViewModel.Id)
+            {
+                ModelState.AddModelError("PostEditEventError", $"The event {homeTeamName} - {awayTeamName} is already exists");
+                return View(eventViewModel);
+            }
 
 
-            _sportingFixturesService.EditEvent(newEvent);
+            if (homeTeam == null)
+            {
+                ModelState.AddModelError("PostEditEventError", $"Home team with name \"{homeTeamName}\" does not exist in our database");
+                return View(eventViewModel);
+            }
 
-            return RedirectToAction(nameof(Index));
+            if (awayTeam == null)
+            {
+                ModelState.AddModelError("PostEditEventError", $"Away team with name \"{awayTeamName}\" does not exist in our database");
+                return View(eventViewModel);
+            }
 
+            if (homeTeamName == awayTeamName)
+            {
+                ModelState.AddModelError("PostEditEventError", $"The provided event {homeTeamName} - {awayTeamName} has two teams with the same name. This is not allowed.");
+                return View(eventViewModel);
+            }
+
+            var newEvent = new Event { Id = eventViewModel.Id, Home = homeTeam, Away = awayTeam, Status = eventViewModel.Status };
+
+            bool isEventCreated = _sportingFixturesService.EditEvent(newEvent);
+
+            if (isEventCreated)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                ModelState.AddModelError("PostEditEventError", $"Event \"{homeTeamName} - {awayTeamName}\" could not be inserted due to database error");
+                return View();
+            }
+            
         }
 
         [HttpGet]

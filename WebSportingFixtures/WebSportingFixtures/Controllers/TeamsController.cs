@@ -30,6 +30,10 @@ namespace WebSportingFixtures.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create([Bind(include: "Name, KnownName")] Team team)
         {
+            if (string.IsNullOrEmpty(team.Name) || string.IsNullOrEmpty(team.KnownName))
+            {
+                return View();
+            }
 
             var foundExistingTeamByName = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.Name.ToLower() == team.Name.ToLower());
             var foundExistingTeamByKnownName = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.KnownName.ToLower() == team.KnownName.ToLower());

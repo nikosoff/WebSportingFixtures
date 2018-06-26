@@ -84,18 +84,16 @@ namespace WebSportingFixtures.Services.Tests
             Assert.AreEqual(expectedResult, actualResult);
         }
 
-        [Test]
-        public void CreateTeam_CreateNewTeamWithEmptyName_ReturnsFalse()
+        [TestCase(new object[]{ "" })]
+        [TestCase(new object[] { null })]
+        public void CreateTeam_CreateNewTeamWithInvalidName_ReturnsFalse(string teamName)
         {
-            //Arrange
-            var randomTeam = new Team { Name = "", KnownName = "Random"};
-            bool expectedResult = false;
+            
+            Mock<IStore> mockStore = new Mock<IStore>();
 
-            //Act
-            bool actualResult = _sut.CreateTeam(randomTeam);
+            var randomTeam = new Team { Name = teamName, KnownName = "Random"};
 
-            //Assert
-            Assert.AreEqual(expectedResult, actualResult);
+            mockStore.Verify((store) => store.CreateTeam(randomTeam), Times.Never);
         }
 
         [Test]

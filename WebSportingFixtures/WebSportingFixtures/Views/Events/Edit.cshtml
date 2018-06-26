@@ -4,14 +4,19 @@
 
 @if (Model != null)
 {
+
+    <p>@Html.ValidationMessage("PostEditEventError")</p>
+
     <form method="post" autocomplete="off">
         <div>
             <label asp-for="Home">Name of home team</label>
-            <input asp-for="Home" asp-validation-for="Home" id="homeTeamInput" value="@Model.Home" oninput="getSuggestions('homeTeamInput')" />
+            <input asp-for="Home" id="homeTeamInput" value="@Model.Home" oninput="getSuggestions('homeTeamInput')" />
+            <span asp-validation-for="Home"></span>
         </div>
         <div>
             <label asp-for="Away">Name of away team</label>
             <input asp-for="Away" asp-validation-for="Away" id="awayTeamInput" value="@Model.Away" oninput="getSuggestions('awayTeamInput')" />
+            <span asp-validation-for="Away"></span>
         </div>
         <div>
             <label asp-for="Status">Status</label>
