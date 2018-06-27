@@ -230,9 +230,74 @@ namespace WebSportingFixtures.Services
 
         }
 
-        public bool EditEvent(Event anEvent)
+        public bool TryEditEvent(Event anEvent, out EventErrors eventErrors)
         {
-            return _store.EditEvent(anEvent);
+            eventErrors = new EventErrors();
+
+            if (anEvent == null)
+            {
+                eventErrors = EventErrors.Undefined;
+                return false;
+            }
+
+            var homeTeamName = anEvent.Home.Name;
+            var awayTeamName = anEvent.Away.Name;
+            var homeTeam = _store.GetAllTeams().ToList().Find(t => t.Name == homeTeamName);
+            var awayTeam = _store.GetAllTeams().ToList().Find(t => t.Name == awayTeamName);
+
+            if (string.IsNullOrEmpty(homeTeamName))
+            {
+                eventErrors = EventErrors.InvalidHomeTeamName;
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(awayTeamName))
+            {
+                eventErrors = EventErrors.InvalidAwayTeamName;
+                return false;
+            }
+
+            var foundExistingEvent = _store.GetAllEvents().ToList().Find(ev => ev.Home.Name == homeTeamName && ev.Away.Name == awayTeamName);
+
+            if (foundExistingEvent != null && foundExistingEvent.Id != anEvent.Id)
+            {
+                eventErrors = EventErrors.EventAlreadyExists;
+                return false;
+            }
+
+            if (homeTeam == null)
+            {
+                eventErrors = EventErrors.HomeTeamDoesNotExists;
+                return false;
+            }
+
+            if (awayTeam == null)
+            {
+                eventErrors = EventErrors.AwayTeamDoesNotExists;
+                return false;
+            }
+
+            if (homeTeamName == awayTeamName)
+            {
+                eventErrors = EventErrors.EventWithSameTeams;
+                return false;
+            }
+
+            var newEvent = new Event { Id = anEvent.Id, Home = homeTeam, Away = awayTeam, Status = anEvent.Status };
+
+            bool isEventCreated = _store.EditEvent(newEvent);
+
+            if (isEventCreated)
+            {
+                eventErrors = EventErrors.None;
+                return true;
+            }
+            else
+            {
+                eventErrors = EventErrors.Undefined;
+                return false;
+            }
+
         }
 
         public bool DeleteEvent(int id)

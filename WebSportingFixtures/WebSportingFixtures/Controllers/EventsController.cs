@@ -65,14 +65,14 @@ namespace WebSportingFixtures.Controllers
                             return View(eventViewModel);
                             break;
                         case EventErrors.InvalidHomeTeamName:
-                            return View();
+                            return View(eventViewModel);
                             break;
                         case EventErrors.InvalidAwayTeamName:
-                            return View();
+                            return View(eventViewModel);
                             break;
                         case EventErrors.Undefined:
                             ModelState.AddModelError("PostCreateEventError", $"Event \"{eventViewModel.Home} - {eventViewModel.Away}\" could not be inserted due to database error");
-                            return View();
+                            return View(eventViewModel);
                             break;
                     }
                 }
@@ -101,57 +101,56 @@ namespace WebSportingFixtures.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit([Bind(include: "Id, Home, Away, Status")] EventViewModel eventViewModel)
         {
-            var homeTeamName = eventViewModel.Home;
-            var awayTeamName = eventViewModel.Away;
-            var homeTeam = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.Name == eventViewModel.Home);
-            var awayTeam = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.Name == eventViewModel.Away);
 
-            if (String.IsNullOrEmpty(homeTeamName) || String.IsNullOrEmpty(awayTeamName))
+            if (ModelState.IsValid)
             {
-                return View(eventViewModel);
-            }
+                var newEvent = new Event { Id = eventViewModel.Id, Home = new Team { Name = eventViewModel.Home }, Away = new Team { Name = eventViewModel.Away}, Status = eventViewModel.Status };
+                EventErrors eventErrors;
+                bool isEventEdited = _sportingFixturesService.TryEditEvent(newEvent, out eventErrors);
 
-            var foundExistingEvent = _sportingFixturesService.GetAllEvents().ToList().Find(ev => ev.Home.Name == homeTeamName && ev.Away.Name == awayTeamName);
+                if (!isEventEdited)
+                {
+                    switch (eventErrors)
+                    {
+                        case EventErrors.EventAlreadyExists:
+                            ModelState.AddModelError("PostEditEventError", $"The event {eventViewModel.Home} - {eventViewModel.Away} is already exists");
+                            return View(eventViewModel);
+                            break;
+                        case EventErrors.HomeTeamDoesNotExists:
+                            ModelState.AddModelError("PostEditEventError", $"Home team with name \"{eventViewModel.Home}\" does not exist in our database");
+                            return View(eventViewModel);
+                            break;
+                        case EventErrors.AwayTeamDoesNotExists:
+                            ModelState.AddModelError("PostEditEventError", $"Away team with name \"{eventViewModel.Away}\" does not exist in our database");
+                            return View(eventViewModel);
+                            break;
+                        case EventErrors.EventWithSameTeams:
+                            ModelState.AddModelError("PostEditEventError", $"The provided event {eventViewModel.Home} - {eventViewModel.Away} has two teams with the same name. This is not allowed.");
+                            return View(eventViewModel);
+                            break;
+                        case EventErrors.InvalidHomeTeamName:
+                            return View(eventViewModel);
+                            break;
+                        case EventErrors.InvalidAwayTeamName:
+                            return View(eventViewModel);
+                            break;
+                        case EventErrors.IdDoesNotExists:
+                            ModelState.AddModelError("PostEditEventError", $"Event with id: {eventViewModel.Id} does not exists");
+                            return View(eventViewModel);
+                            break;
+                        case EventErrors.Undefined:
+                            ModelState.AddModelError("PostEditEventError", $"Event \"{eventViewModel.Home} - {eventViewModel.Away}\" could not be inserted due to database error");
+                            return View(eventViewModel);
+                            break;
+                    }
+                }
 
-            if (foundExistingEvent != null && foundExistingEvent.Id != eventViewModel.Id)
-            {
-                ModelState.AddModelError("PostEditEventError", $"The event {homeTeamName} - {awayTeamName} is already exists");
-                return View(eventViewModel);
-            }
-
-
-            if (homeTeam == null)
-            {
-                ModelState.AddModelError("PostEditEventError", $"Home team with name \"{homeTeamName}\" does not exist in our database");
-                return View(eventViewModel);
-            }
-
-            if (awayTeam == null)
-            {
-                ModelState.AddModelError("PostEditEventError", $"Away team with name \"{awayTeamName}\" does not exist in our database");
-                return View(eventViewModel);
-            }
-
-            if (homeTeamName == awayTeamName)
-            {
-                ModelState.AddModelError("PostEditEventError", $"The provided event {homeTeamName} - {awayTeamName} has two teams with the same name. This is not allowed.");
-                return View(eventViewModel);
-            }
-
-            var newEvent = new Event { Id = eventViewModel.Id, Home = homeTeam, Away = awayTeam, Status = eventViewModel.Status };
-
-            bool isEventCreated = _sportingFixturesService.EditEvent(newEvent);
-
-            if (isEventCreated)
-            {
                 return RedirectToAction(nameof(Index));
+
             }
-            else
-            {
-                ModelState.AddModelError("PostEditEventError", $"Event \"{homeTeamName} - {awayTeamName}\" could not be inserted due to database error");
-                return View();
-            }
-            
+
+            return View(eventViewModel);
+
         }
 
         [HttpGet]

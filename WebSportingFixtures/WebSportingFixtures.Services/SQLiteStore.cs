@@ -163,26 +163,6 @@ namespace WebSportingFixtures.Services
             }
         }
 
-        public bool DeleteEvent(int id)
-        {
-            int rowsAffected = 0;
-
-            try
-            {
-                using (IDbConnection dbConnection = new SQLiteConnection(_connectionString))
-                {
-                    string queryString = "DELETE FROM Events WHERE Id=@Id";
-                    rowsAffected = dbConnection.Execute(queryString, new { id });
-                }
-            }
-            catch (SQLiteException)
-            {
-                return false;
-            }
-
-            return rowsAffected != 0;
-        }
-
         public bool EditEvent(Event anEvent)
         {
             int rowsAffected = 0;
@@ -204,7 +184,27 @@ namespace WebSportingFixtures.Services
                         Id = anEvent.Id
                     });
                 }
- 
+
+            }
+            catch (SQLiteException)
+            {
+                return false;
+            }
+
+            return rowsAffected != 0;
+        }
+
+        public bool DeleteEvent(int id)
+        {
+            int rowsAffected = 0;
+
+            try
+            {
+                using (IDbConnection dbConnection = new SQLiteConnection(_connectionString))
+                {
+                    string queryString = "DELETE FROM Events WHERE Id=@Id";
+                    rowsAffected = dbConnection.Execute(queryString, new { id });
+                }
             }
             catch (SQLiteException)
             {
