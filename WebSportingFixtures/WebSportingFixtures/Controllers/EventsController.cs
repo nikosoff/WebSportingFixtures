@@ -32,19 +32,6 @@ namespace WebSportingFixtures.Controllers
             return View();
         }
 
-        [HttpGet]
-        public IActionResult Edit(int id)
-        {
-            EventViewModel eventViewModel = null;
-            var anEvent = _sportingFixturesService.GetEvent(id);
-
-            if (anEvent != null)
-            {
-                eventViewModel = new EventViewModel() { Home = anEvent.Home.Name, Away = anEvent.Away.Name, Status = anEvent.Status };
-            }
-            return View(eventViewModel);
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create([Bind(include: " Home, Away, Status")]EventViewModel eventViewModel)
@@ -105,6 +92,19 @@ namespace WebSportingFixtures.Controllers
                 return View();
             }
             
+        }
+
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            EventViewModel eventViewModel = null;
+            var anEvent = _sportingFixturesService.GetEvent(id);
+
+            if (anEvent != null)
+            {
+                eventViewModel = new EventViewModel() { Home = anEvent.Home.Name, Away = anEvent.Away.Name, Status = anEvent.Status };
+            }
+            return View(eventViewModel);
         }
 
         [HttpPost]

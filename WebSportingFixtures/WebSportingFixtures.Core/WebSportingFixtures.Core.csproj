@@ -48,9 +48,11 @@
     <Compile Include="Interfaces\IStore.cs" />
     <Compile Include="Interfaces\ITextSimilarityAlgorithm.cs" />
     <Compile Include="Models\Event.cs" />
+    <Compile Include="Models\EventErrors.cs" />
     <Compile Include="Models\RawEvent.cs" />
     <Compile Include="Models\Status.cs" />
     <Compile Include="Models\Team.cs" />
+    <Compile Include="Models\TeamErrors.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

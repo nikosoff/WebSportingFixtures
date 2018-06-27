@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using WebSportingFixtures.Core.Models;
 using WebSportingFixtures.Core.Interfaces;
+using System.Linq;
 
 namespace WebSportingFixtures.Services
 {
@@ -15,19 +16,134 @@ namespace WebSportingFixtures.Services
             _textSimilarityAlgorithm = textSimilarityAlgorithm;
         }
 
-        public bool CreateTeam(Team team)
+        public bool TryCreateTeam(Team team, out TeamErrors teamErrors)
         {
-            return _store.CreateTeam(team);
+            teamErrors = new TeamErrors();
+
+            if (string.IsNullOrEmpty(team.Name))
+            {
+                teamErrors = TeamErrors.InvalidName;
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(team.KnownName))
+            {
+                teamErrors = TeamErrors.InvalidKnownName;
+                return false;
+            }
+
+            var foundExistingTeamByName = _store.GetAllTeams().ToList().Find(t => t.Name.ToLower() == team.Name.ToLower());
+            var foundExistingTeamByKnownName = _store.GetAllTeams().ToList().Find(t => t.KnownName.ToLower() == team.KnownName.ToLower());
+
+            if (foundExistingTeamByName != null)
+            {
+                teamErrors = TeamErrors.NameAlreadyExists;
+                return false;
+            }
+
+            if (foundExistingTeamByKnownName != null)
+            {
+                teamErrors = TeamErrors.KnownNameAlreadyExists;
+                return false;
+            }
+
+            Team createdTeam = _store.CreateTeam(team);
+
+            if (createdTeam != null)
+            {
+                teamErrors = TeamErrors.None;
+                return true;
+            }
+            else
+            {
+                teamErrors = TeamErrors.Undefined;
+                return false;
+            }
+            
         }
 
-        public bool EditTeam(Team team)
+        public bool TryEditTeam(Team team, out TeamErrors teamErrors)
         {
-           return _store.EditTeam(team);
+            teamErrors = new TeamErrors();
+
+            if (team == null)
+            {
+                teamErrors = TeamErrors.Undefined;
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(team.Name))
+            {
+                teamErrors = TeamErrors.InvalidName;
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(team.KnownName))
+            {
+                teamErrors = TeamErrors.InvalidKnownName;
+                return false;
+            }
+
+            var providedTeam = _store.GetTeam(team.Id);
+
+            if (providedTeam == null)
+            {
+                teamErrors = TeamErrors.IdDoesNotExists;
+                return false;
+            }
+
+            var foundExistingTeamByName = _store.GetAllTeams().ToList().Find(t => t.Name.ToLower() == team.Name.ToLower());
+            var foundExistingTeamByKnownName = _store.GetAllTeams().ToList().Find(t => t.KnownName.ToLower() == team.KnownName.ToLower());
+
+            if (foundExistingTeamByName != null && foundExistingTeamByName.Name != providedTeam.Name)
+            {
+                teamErrors = TeamErrors.NameAlreadyExists;
+                return false;
+            }
+
+            if (foundExistingTeamByKnownName != null && foundExistingTeamByKnownName.KnownName != providedTeam.KnownName)
+            {
+                teamErrors = TeamErrors.KnownNameAlreadyExists;
+                return false;
+            }
+
+            bool isTeamEdited = _store.EditTeam(team);
+
+            if (isTeamEdited)
+            {
+                teamErrors = TeamErrors.None;
+                return true;
+            }
+            else
+            {
+                teamErrors = TeamErrors.Undefined;
+                return false;
+            }
         }
 
-        public bool DeleteTeam(int id)
+        public bool TryDeleteTeam(int id, out TeamErrors teamErrors)
         {
-            return _store.DeleteTeam(id);
+            teamErrors = new TeamErrors();
+            var teamToDelete = _store.GetTeam(id);
+
+            if (teamToDelete == null)
+            {
+                teamErrors = TeamErrors.IdDoesNotExists;
+                return false;
+            }
+
+            bool isTeamDeleted = _store.DeleteTeam(id);
+            if (isTeamDeleted)
+            {
+                teamErrors = TeamErrors.None;
+                return true;
+            }
+            else
+            {
+                teamErrors = TeamErrors.Undefined;
+                return false;
+            }
+
         }
 
         public Team GetTeam(int id)

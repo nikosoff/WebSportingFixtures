@@ -30,44 +30,48 @@ namespace WebSportingFixtures.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create([Bind(include: "Name, KnownName")] Team team)
         {
-            if (string.IsNullOrEmpty(team.Name) || string.IsNullOrEmpty(team.KnownName))
-            {
-                return View();
-            }
 
-            var foundExistingTeamByName = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.Name.ToLower() == team.Name.ToLower());
-            var foundExistingTeamByKnownName = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.KnownName.ToLower() == team.KnownName.ToLower());
-
-            if (foundExistingTeamByName != null)
-            {
-                ModelState.AddModelError("PostCreateTeamNameError", $"The team \"{foundExistingTeamByName.Name}\" is already exists");
-                return View();
-            }
-            else if (foundExistingTeamByKnownName != null)
-            {
-                ModelState.AddModelError("PostCreateTeamKnownNameError", $"The team known as \"{foundExistingTeamByKnownName.KnownName}\" is already exists");
-                return View();
-            }
-            
             if (ModelState.IsValid)
             {
-                var newTeam = new Team { Name = team.Name, KnownName = team.KnownName };
+                TeamErrors teamErrors;
+                bool isTeamCreated = _sportingFixturesService.TryCreateTeam(team, out teamErrors);
 
-                bool isTeamCreated = _sportingFixturesService.CreateTeam(newTeam);
-                if (isTeamCreated)
+                if (!isTeamCreated)
                 {
-                    return RedirectToAction(nameof(Index));
+                    switch (teamErrors)
+                    {
+                        case TeamErrors.NameAlreadyExists:
+                            ModelState.AddModelError("PostCreateTeamNameError",
+                                $"The team \"{team.Name}\" is already exists");
+                            return View();
+                            break;
+                        case TeamErrors.KnownNameAlreadyExists:
+                            ModelState.AddModelError("PostCreateTeamKnownNameError",
+                                $"The team known as \"{team.KnownName}\" is already exists");
+                            return View();
+                            break;
+                        case TeamErrors.InvalidName:
+                            return View();
+                            break;
+                        case TeamErrors.InvalidKnownName:
+                            return View();
+                            break;
+                        case TeamErrors.Undefined:
+                            ModelState.AddModelError("PostCreateTeamError",
+                                $"Team \"{team.Name}\" could not be inserted due to database error");
+                            return View();
+                            break;
+                    }
                 }
                 else
                 {
-                    ModelState.AddModelError("PostCreateTeamError", $"Team \"{foundExistingTeamByName.Name}\" could not be inserted due to database error");
-                    return View();
+                    return RedirectToAction(nameof(Index));
                 }
+
             }
-            else
-            {
-                return View();
-            }
+
+            return View();
+
         }
 
         [HttpGet]
@@ -83,43 +87,43 @@ namespace WebSportingFixtures.Controllers
         {
             if (ModelState.IsValid)
             {
-                var providedTeam = _sportingFixturesService.GetTeam(team.Id);
 
-                if (providedTeam == null)
+                TeamErrors teamErrors;
+                bool isTeamEdited = _sportingFixturesService.TryEditTeam(team, out teamErrors);
+
+                if (!isTeamEdited)
                 {
-                    return View();
+                    switch (teamErrors)
+                    {
+                        case TeamErrors.NameAlreadyExists:
+                            ModelState.AddModelError("PostEditTeamNameError", $"The team \"{team.Name}\" is already exists");
+                            return View(team);
+                            break;
+                        case TeamErrors.KnownNameAlreadyExists:
+                            ModelState.AddModelError("PostEditTeamKnownNameError", $"The team known as \"{team.KnownName}\" is already exists");
+                            return View(team);
+                            break;
+                        case TeamErrors.InvalidName:
+                            return View(team);
+                            break;
+                        case TeamErrors.InvalidKnownName:
+                            return View(team);
+                            break;
+                        case TeamErrors.IdDoesNotExists:
+                            ModelState.AddModelError("PostEditTeamError", $"Team with id: {team.Id} does not exists");
+                            return View(team);
+                            break;
+                        case TeamErrors.Undefined:
+                            ModelState.AddModelError("PostEditTeamError", $"Team \"{team.Name}\" could not be edited due to database error");
+                            return View(team);
+                            break;
+                    }
                 }
 
-                var foundExistingTeamByName = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.Name.ToLower() == team.Name.ToLower());
-                var foundExistingTeamByKnownName = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.KnownName.ToLower() == team.KnownName.ToLower());
-
-                if (foundExistingTeamByName != null && foundExistingTeamByName.Name != providedTeam.Name)
-                {
-                    ModelState.AddModelError("PostEditTeamNameError", $"The team \"{foundExistingTeamByName.Name}\" is already exists");
-                    return View(team);
-                }
-                else if (foundExistingTeamByKnownName != null && foundExistingTeamByKnownName.KnownName != providedTeam.KnownName)
-                {
-                    ModelState.AddModelError("PostEditTeamKnownNameError", $"The team known as \"{foundExistingTeamByKnownName.KnownName}\" is already exists");
-                    return View(team);
-                }
-
-                bool isTeamEdited = _sportingFixturesService.EditTeam(team);
-
-                if (isTeamEdited)
-                {
-                    return RedirectToAction(nameof(Index));
-                }
-                else
-                {
-                    ModelState.AddModelError("PostEditTeamError", $"Team \"{foundExistingTeamByName.Name}\" could not be edited due to database error");
-                    return View(team);
-                }
+                return RedirectToAction(nameof(Index));
             }
-            else
-            {
-                return View(team);
-            }
+
+            return View(team);
            
         }
 
@@ -133,16 +137,27 @@ namespace WebSportingFixtures.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            bool isTeamDeleted = _sportingFixturesService.DeleteTeam(id);
+            TeamErrors teamErrors;
+
+            bool isTeamDeleted = _sportingFixturesService.TryDeleteTeam(id, out teamErrors);
 
             if (!isTeamDeleted)
             {
-                return View();
+                switch (teamErrors)
+                {
+                    case TeamErrors.IdDoesNotExists:
+                        ModelState.AddModelError("PostDeleteTeamError", $"Team with id: \"{id}\" does not exists");
+                        return View();
+                        break;
+                    case TeamErrors.Undefined:
+                        ModelState.AddModelError("PostDeleteTeamError", $"Team with id: \"{id}\" could not be deleted due to database error");
+                        return View();
+                        break;
+
+                }
             }
-            else
-            {
-                return RedirectToAction(nameof(Index));
-            }
+
+            return RedirectToAction(nameof(Index));
 
         }
 

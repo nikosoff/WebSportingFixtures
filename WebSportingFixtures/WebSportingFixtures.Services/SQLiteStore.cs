@@ -17,16 +17,49 @@ namespace WebSportingFixtures.Services
             _connectionString = connectionString;
         }
 
-        public bool CreateTeam(Team team)
+        public Team CreateTeam(Team team)
         {
-                int rowsAffected = 0;
+            int id = -1;
 
             try
             {
                 using (IDbConnection dbConnection = new SQLiteConnection(_connectionString))
                 {
-                    string queryString = "INSERT INTO Teams(Name, KnownName) VALUES (@Name, @KnownName)";
-                    rowsAffected = dbConnection.Execute(queryString, team);
+                    string queryString = "INSERT INTO Teams(Name, KnownName) VALUES (@Name, @KnownName); select last_insert_rowid() as Id";
+                    id = dbConnection.QuerySingle<int>(queryString, team);
+                }
+            }
+            catch (SQLiteException)
+            {
+                return null;
+            }
+
+            if (id >= 0)
+            {
+                team.Id = id;
+                return team;
+            }
+            else
+            {
+                return null;
+            }
+
+        }
+
+        public bool EditTeam(Team team)
+        {
+            int rowsAffected = 0;
+
+            try
+            {
+                using (IDbConnection dbConnection = new SQLiteConnection(_connectionString))
+                {
+                    string queryString = "UPDATE Teams " +
+                                         "SET Name=@Name, " +
+                                         "KnownName=@KnownName " +
+                                         "WHERE Id=@Id";
+
+                    rowsAffected = dbConnection.Execute(queryString, new { team.Name, team.KnownName, team.Id });
                 }
             }
             catch (SQLiteException)
@@ -35,7 +68,6 @@ namespace WebSportingFixtures.Services
             }
 
             return rowsAffected != 0;
-
         }
 
         public bool DeleteTeam(int id)
@@ -59,29 +91,7 @@ namespace WebSportingFixtures.Services
             return rowsAffected != 0;
         }
 
-        public bool EditTeam(Team team)
-        {
-            int rowsAffected = 0;
-
-            try
-            {
-                using (IDbConnection dbConnection = new SQLiteConnection(_connectionString))
-                {
-                    string queryString = "UPDATE Teams " +
-                                         "SET Name=@Name, " +
-                                         "KnownName=@KnownName " +
-                                         "WHERE Id=@Id";
-                   
-                    rowsAffected = dbConnection.Execute(queryString, new { team.Name, team.KnownName, team.Id });
-                }
-            }
-            catch (SQLiteException)
-            {
-                return false;
-            }
-
-            return rowsAffected != 0;
-        }
+       
 
         public Team GetTeam(int id)
         {
@@ -99,7 +109,7 @@ namespace WebSportingFixtures.Services
             }
             catch (SQLiteException)
             {
-                // TO DO SOMETHING
+                return null;
             }
 
             return team;

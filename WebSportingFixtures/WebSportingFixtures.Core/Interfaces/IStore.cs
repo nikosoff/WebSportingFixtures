@@ -5,7 +5,7 @@ namespace WebSportingFixtures.Core.Interfaces
 {
     public interface IStore
     {
-        bool CreateTeam(Team team);
+        Team CreateTeam(Team team);
         bool EditTeam(Team team);
         bool DeleteTeam(int id);
         Team GetTeam(int id);
