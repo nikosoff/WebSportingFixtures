@@ -300,9 +300,29 @@ namespace WebSportingFixtures.Services
 
         }
 
-        public bool DeleteEvent(int id)
+        public bool TryDeleteEvent(int id, out EventErrors eventErrors)
         {
-            return _store.DeleteEvent(id);
+            eventErrors = new EventErrors();
+            var anEvent = _store.GetEvent(id);
+
+            if (anEvent == null)
+            {
+                eventErrors = EventErrors.IdDoesNotExists;
+                return false;
+            } 
+
+            bool isEventDeleted = _store.DeleteEvent(id);
+
+            if (isEventDeleted)
+            {
+                eventErrors = EventErrors.None;
+                return true;
+            }
+            else
+            {
+                eventErrors = EventErrors.Undefined;
+                return false;
+            }
         }
 
         public Event GetEvent(int id)

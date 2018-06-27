@@ -164,18 +164,27 @@ namespace WebSportingFixtures.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmation(int id)
         {
-            bool isEventDeleted = _sportingFixturesService.DeleteEvent(id);
 
-            if (isEventDeleted)
+            EventErrors eventErrors;
+            bool isEventDeleted = _sportingFixturesService.TryDeleteEvent(id, out eventErrors);
+
+            if (!isEventDeleted)
             {
-                return RedirectToAction(nameof(Index));
+                switch (eventErrors)
+                {
+                    case EventErrors.IdDoesNotExists:
+                        ModelState.AddModelError("PostDeleteEventError", $"The event with id: {id} does not exists");
+                        return View();
+                        break;
+                    case EventErrors.Undefined:
+                        ModelState.AddModelError("PostDeleteEventError", $"The event with id: {id} could not be deleted due to database error");
+                        return View();
+                        break;
+                }
             }
-            else
-            {
-                var anEvent = _sportingFixturesService.GetEvent(id);
-                ModelState.AddModelError("PostDeleteEventError", $"The event with id: {id} could not be deleted due to database error");
-                return View(anEvent);
-            }
+
+            return RedirectToAction(nameof(Index));
+
         }
 
         [HttpGet]
