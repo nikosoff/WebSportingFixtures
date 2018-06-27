@@ -25,7 +25,7 @@ namespace WebSportingFixtures.Services
             {
                 using (IDbConnection dbConnection = new SQLiteConnection(_connectionString))
                 {
-                    string queryString = "INSERT INTO Teams(Name, KnownName) VALUES (@Name, @KnownName); select last_insert_rowid() as Id";
+                    string queryString = "INSERT INTO Teams(Name, KnownName) VALUES (@Name, @KnownName); SELECT last_insert_rowid() as Id";
                     id = dbConnection.QuerySingle<int>(queryString, team);
                 }
             }
@@ -132,26 +132,35 @@ namespace WebSportingFixtures.Services
             }
         }
 
-        public bool CreateEvent(Event anEvent)
+        public Event CreateEvent(Event anEvent)
         {
-            int rowsAffected = -1;
+            int id = -1;
 
             try
             {
                 using (IDbConnection dbConnection = new SQLiteConnection(_connectionString))
                 {
                     string queryString = "INSERT INTO Events(HomeTeam, AwayTeam, Status) " +
-                                         "VALUES (@HomeTeamId,@AwayTeamId,@Status)";
+                                         "VALUES (@HomeTeamId,@AwayTeamId,@Status); " +
+                                         "SELECT last_insert_rowid() as Id";
 
-                    rowsAffected = dbConnection.Execute(queryString, new { HomeTeamId = anEvent.Home.Id, AwayTeamId = anEvent.Away.Id, anEvent.Status });
+                    id = dbConnection.QuerySingle<int>(queryString, new { HomeTeamId = anEvent.Home.Id, AwayTeamId = anEvent.Away.Id, anEvent.Status });
                 }
             }
             catch (SQLiteException)
             {
-                return false;
+                return null;
             }
 
-            return rowsAffected != -1;
+            if (id >= 0)
+            {
+                anEvent.Id = id;
+                return anEvent;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public bool DeleteEvent(int id)

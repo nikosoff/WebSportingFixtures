@@ -156,9 +156,78 @@ namespace WebSportingFixtures.Services
             return _store.GetAllTeams();
         }
 
-        public bool CreateEvent(Event anEvent)
+        public bool TryCreateEvent(Event anEvent, out EventErrors eventErrors)
         {
-            return _store.CreateEvent(anEvent);
+            eventErrors = new EventErrors();
+            if (anEvent == null)
+            {
+                eventErrors = EventErrors.Undefined;
+                return false;
+            }
+
+            var homeTeamName = anEvent.Home.Name;
+            var awayTeamName = anEvent.Away.Name;
+            var homeTeam = _store.GetAllTeams().ToList().Find(t => t.Name == homeTeamName);
+            var awayTeam = _store.GetAllTeams().ToList().Find(t => t.Name == awayTeamName);
+
+            if (string.IsNullOrEmpty(homeTeamName) )
+            {
+                eventErrors = EventErrors.InvalidHomeTeamName;
+                return false;
+            }
+            if (string.IsNullOrEmpty(awayTeamName))
+            {
+                eventErrors = EventErrors.InvalidAwayTeamName;
+                return false;
+            }
+
+            var foundExistingEvent = _store.GetAllEvents().ToList().Find(ev => ev.Home.Name == homeTeamName && ev.Away.Name == awayTeamName);
+
+            if (foundExistingEvent != null)
+            {
+                eventErrors = EventErrors.EventAlreadyExists;
+                return false;
+            }
+
+            if (homeTeam == null)
+            {
+                eventErrors = EventErrors.HomeTeamDoesNotExists;
+                return false;
+            }
+
+            if (awayTeam == null)
+            {
+                eventErrors = EventErrors.AwayTeamDoesNotExists;
+                return false;
+            }
+
+            if (homeTeamName == awayTeamName)
+            {
+                eventErrors = EventErrors.EventWithSameTeams;
+                return false;
+            }
+
+            Event newEvent = new Event
+            {
+                Home = new Team { Id = homeTeam.Id, Name = homeTeam.Name, KnownName = homeTeam.KnownName },
+                Away = new Team { Id = awayTeam.Id, Name = awayTeam.Name, KnownName = awayTeam.KnownName },
+                Status = anEvent.Status
+            };
+
+
+            Event eventToCreate = _store.CreateEvent(newEvent);
+
+            if (eventToCreate != null)
+            {
+                eventErrors = EventErrors.None;
+                return true;
+            }
+            else
+            {
+                eventErrors = EventErrors.Undefined;
+                return false;
+            }
+
         }
 
         public bool EditEvent(Event anEvent)

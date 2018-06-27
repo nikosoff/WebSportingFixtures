@@ -10,7 +10,7 @@ namespace WebSportingFixtures.Core.Interfaces
         bool DeleteTeam(int id);
         Team GetTeam(int id);
         IEnumerable<Team> GetAllTeams();
-        bool CreateEvent(Event anEvent);
+        Event CreateEvent(Event anEvent);
         bool EditEvent(Event anEvent);
         bool DeleteEvent(int id);
         Event GetEvent(int id);

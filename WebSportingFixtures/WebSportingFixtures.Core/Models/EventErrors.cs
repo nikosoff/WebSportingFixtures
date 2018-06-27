@@ -13,6 +13,8 @@ namespace WebSportingFixtures.Core.Models
         EventAlreadyExists,
         HomeTeamDoesNotExists,
         AwayTeamDoesNotExists,
-        EventWithSameTeams
+        EventWithSameTeams,
+        InvalidHomeTeamName,
+        InvalidAwayTeamName
     }
 }
