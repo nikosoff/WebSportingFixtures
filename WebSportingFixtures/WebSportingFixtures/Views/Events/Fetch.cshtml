@@ -5,35 +5,96 @@
     ViewBag.Title = "Fetch & Store evetns";
 }
 
-@Html.ValidationSummary()
+@Html.AntiForgeryToken()
 
+@*@foreach (var key in  Model.map.Keys)
+    {
+        var home = @key + ".home";
+        var away = @key + ".away";
+        var status = @key + ".status";
+        <form method="post" autocomplete="off">
+            <input type="text" id=@home value=@Model.map[key].Item1 name=@home onclick="getSuggestions(@home, 'click')" oninput="getSuggestions(@home, 'input')"@(Model.map[key].Item4 ? "disabled" : "")  />
+            <input type="text" id=@away value=@Model.map[key].Item2 name=@away onclick="getSuggestions(@away, 'click')" oninput="getSuggestions(@away, 'input')" @(Model.map[key].Item4 ? "disabled" : "") />
+            <select name=@status asp-items="Html.GetEnumSelectList<Status>()" @(Model.map[key].Item4 ? "disabled" : "") ></select>
+            <input type="submit" name="approve" value="Approve" @(Model.map[key].Item4 ? "disabled" : "")  />
+        </form>
+    }
+    <a asp-action="Index">Back</a>*@
 
-@if (Model.Count() > 0)
+<form method="post" autocomplete="off">
+    <input type="submit" name="approve" value="Approve" />
+</form>
+
+@for (int i = 0; i < Model.Count(); i++)
 {
-    <form method="post" autocomplete="off">
-        @for (int i = 0; i < Model.Count(); i++)
-        {
-            var homeId = "homeTeam" + @i;
-            var awayId = "awayTeam" + @i;
-            var eventStatus = "eventStatus" + @i;
+    var homeId = "homeTeam" + @i;
+    var awayId = "awayTeam" + @i;
+    var statusId = "eventStatus" + @i;
+    var approve = "approve" + @i;
 
-            <input type="text" id=@homeId value="@Model.ElementAt(i).Home" name="@homeId" onclick="getSuggestions(@homeId, 'click')" oninput="getSuggestions(@homeId, 'input')" />
-            <input type="text" id=@awayId value="@Model.ElementAt(i).Away" name="@awayId" onclick="getSuggestions(@awayId, 'click')" oninput="getSuggestions(@awayId, 'input')" />
-            <select name="@eventStatus" asp-items="Html.GetEnumSelectList<Status>()"></select>
-            <br />
-            <br />
-        }
-        <input type="submit" name="save" value="Save" />
+    <input type="text" id=@homeId value="@Model.ElementAt(i).Home" name="@homeId" onclick="getSuggestions(@homeId, 'click')" oninput="getSuggestions(@homeId, 'input')" />
+    <input type="text" id=@awayId value="@Model.ElementAt(i).Away" name="@awayId" onclick="getSuggestions(@awayId, 'click')" oninput="getSuggestions(@awayId, 'input')" />
+    <select id="@statusId" name="@statusId" asp-items="Html.GetEnumSelectList<Status>()"></select>
+    <input id="@approve" type="submit" name="approve" value="Approve" onclick="sendRequest(@homeId, @awayId, @statusId, @approve)" />
+    <br />
+    <br />
+}
+
+
+
+@*@Html.ValidationSummary()
+
+
+    @if (Model.Count() > 0)
+    {
+        <form method="post" autocomplete="off">
+            @for (int i = 0; i < Model.Count(); i++)
+            {
+                var homeId = "homeTeam" + @i;
+                var awayId = "awayTeam" + @i;
+                var eventStatus = "eventStatus" + @i;
+
+                <input type="text" id=@homeId value="@Model.ElementAt(i).Home" name="@homeId" onclick="getSuggestions(@homeId, 'click')" oninput="getSuggestions(@homeId, 'input')" />
+                <input type="text" id=@awayId value="@Model.ElementAt(i).Away" name="@awayId" onclick="getSuggestions(@awayId, 'click')" oninput="getSuggestions(@awayId, 'input')" />
+                <select name="@eventStatus" asp-items="Html.GetEnumSelectList<Status>()"></select>
+                <br />
+                <br />
+            }
+            <input type="submit" name="save" value="Save" />
+            <a asp-action="Index">Back</a>
+        </form>
+    }
+    else
+    {
+        <h3>The provider can not load events! Please try again later.</h3>
         <a asp-action="Index">Back</a>
-    </form>
-}
-else
-{
-    <h3>The provider can not load events! Please try again later.</h3>
-    <a asp-action="Index">Back</a>
-}
+    }*@
 
 <script>
+
+    function sendRequest(homeId, awayId, statusId, approve) {
+
+        var csrf = document.getElementsByName("__RequestVerificationToken")[0].value;
+
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function (response) {
+            if (request.readyState === 4 && request.status === 200) {
+
+                homeId.disabled = true;
+                awayId.disabled = true;
+                statusId.disabled = true;
+                approve.disabled = true;
+
+            }
+        };
+        request.open('POST', 'http://localhost:51805/Events/Fetch', true);
+        request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        request.setRequestHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        request.setRequestHeader("Upgrade-Insecure-Requests", "1");
+        request.setRequestHeader("__RequestVerificationToken", csrf);
+        request.send("__RequestVerificationToken="+csrf);
+
+    }
 
     function getSuggestions(team, event) {
 
@@ -59,7 +120,7 @@ else
             }
         };
 
-        request.open('GET', 'http://localhost:63933/Events/SuggestedTeams?givenTeamName=' + input.value, true);
+        request.open('GET', 'http://localhost:51805/Events/SuggestedTeams?givenTeamName=' + input.value, true);
         request.send(null);
 
     }

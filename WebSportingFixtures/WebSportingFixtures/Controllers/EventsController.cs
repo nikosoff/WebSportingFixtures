@@ -191,83 +191,119 @@ namespace WebSportingFixtures.Controllers
         public IActionResult Fetch()
         {
             var rawEvents = _rawEventProvider.GetRawEvents();
+            //RawsEventsViewModel rawsEventsViewModel = new RawsEventsViewModel();
+            //for (int i = 0; i < rawEvents.Count(); i++)
+            //{
+            //    var home = rawEvents.ElementAt(i).Home;
+            //    var away = rawEvents.ElementAt(i).Away;
+            //    var status = rawEvents.ElementAt(i).Status;
+            //    rawsEventsViewModel.map.Add("event" + i, new Tuple<string, string, Status, bool>(home, away, status, false));
+            //}
+            //return View(rawsEventsViewModel);
             return View(rawEvents);
         }
-
+        
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Fetch(int id)
+        public string Fetch(int? id)
         {
-            var rawEvents = _rawEventProvider.GetRawEvents();
+            return "";
+            //var rawEvents = _rawEventProvider.GetRawEvents();
+            //RawsEventsViewModel rawsEventsViewModel = new RawsEventsViewModel();
+            //for (int i = 0; i < rawEvents.Count(); i++)
+            //{
+            //    var home = rawEvents.ElementAt(i).Home;
+            //    var away = rawEvents.ElementAt(i).Away;
+            //    var status = rawEvents.ElementAt(i).Status;
+            //    rawsEventsViewModel.map.Add("event" + i, new Tuple<string, string, Status, bool>(home, away, status, false));
+            //}
 
-            var keys = Request.Form.Keys;
+            //var keys = Request.Form.Keys;
+            //var key = keys.ElementAt(1).Split('.')[0];
 
-            var anEvent = new Event()
-            {
-                Home = new Team(),
-                Away = new Team(),
-                Status = Status.Undefined
-            };
+            //var homeTeam = Request.Form[keys.ElementAt(0)];
+            //var awayTeam = Request.Form[keys.ElementAt(1)];
+            //var eventStatus = (Status) Int32.Parse(Request.Form[keys.ElementAt(2)]);
+            //rawsEventsViewModel.map[key] = new Tuple<string, string, Status, bool>(homeTeam, awayTeam, eventStatus, true);
 
-            for (int i = 0; i < keys.Count; i++)
-            {
-                var name = keys.ElementAt(i);
-                if (name.StartsWith("home"))
-                {
-                    var homeTeamName = Request.Form[name];
-                    var homeTeam = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.Name == homeTeamName);
-                    rawEvents.ToList()[(int)i / 3].Home = homeTeamName;
-
-                    if (homeTeam == null)
-                    {
-                        ModelState.AddModelError("PostFetchError", $"Home team with name {Request.Form[name]} does not exist in our database");
-                        return View(rawEvents);
-                    }
-                    else
-                    {
-                        anEvent.Home = homeTeam;
-                    }
-                    continue;
-                }
-                else if (name.StartsWith("away"))
-                {
-                    var awayTeamName = Request.Form[name];
-                    var awayTeam = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.Name == awayTeamName);
-                    rawEvents.ToList()[(int)i / 3].Away = awayTeamName;
-
-                    if (awayTeam == null)
-                    {
-                        ModelState.AddModelError("PostFetchError", $"Away team with name {Request.Form[name]} does not exist in our database");
-                        return View(rawEvents);
-                    }
-                    else
-                    {
-                        anEvent.Away = awayTeam;
-                    }
-                    continue;
-                }
-                else if (name.StartsWith("eventStatus"))
-                {
-                    anEvent.Status = (Status)Int32.Parse(Request.Form[name].ToString());
-                }
-                else
-                {
-                    continue;
-                }
-
-                if (anEvent.Home.Name == anEvent.Away.Name)
-                {
-                    ModelState.AddModelError("PostFetchError", $"The provided event {anEvent.Home.Name} - {anEvent.Away.Name} has two teams with the same name. This is not allowed.");
-                    return View(rawEvents);
-                }
-
-                EventErrors evetErrors;
-                _sportingFixturesService.TryCreateEvent(anEvent, out evetErrors);
-
-            }
-
-            return RedirectToAction(nameof(Index));
+            //return View(rawsEventsViewModel);
         }
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public IActionResult Fetch(int id)
+        //{
+        //    var rawEvents = _rawEventProvider.GetRawEvents();
+
+        //    var keys = Request.Form.Keys;
+
+        //    var anEvent = new Event()
+        //    {
+        //        Home = new Team(),
+        //        Away = new Team(),
+        //        Status = Status.Undefined
+        //    };
+
+        //    for (int i = 0; i < keys.Count; i++)
+        //    {
+        //        var name = keys.ElementAt(i);
+        //        if (name.StartsWith("home"))
+        //        {
+        //            var homeTeamName = Request.Form[name];
+        //            var homeTeam = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.Name == homeTeamName);
+        //            rawEvents.ToList()[(int)i / 3].Home = homeTeamName;
+
+        //            if (homeTeam == null)
+        //            {
+        //                ModelState.AddModelError("PostFetchError", $"Home team with name {Request.Form[name]} does not exist in our database");
+        //                return View(rawEvents);
+        //            }
+        //            else
+        //            {
+        //                anEvent.Home = homeTeam;
+        //            }
+        //            continue;
+        //        }
+        //        else if (name.StartsWith("away"))
+        //        {
+        //            var awayTeamName = Request.Form[name];
+        //            var awayTeam = _sportingFixturesService.GetAllTeams().ToList().Find(t => t.Name == awayTeamName);
+        //            rawEvents.ToList()[(int)i / 3].Away = awayTeamName;
+
+        //            if (awayTeam == null)
+        //            {
+        //                ModelState.AddModelError("PostFetchError", $"Away team with name {Request.Form[name]} does not exist in our database");
+        //                return View(rawEvents);
+        //            }
+        //            else
+        //            {
+        //                anEvent.Away = awayTeam;
+        //            }
+        //            continue;
+        //        }
+        //        else if (name.StartsWith("eventStatus"))
+        //        {
+        //            anEvent.Status = (Status)Int32.Parse(Request.Form[name].ToString());
+        //        }
+        //        else
+        //        {
+        //            continue;
+        //        }
+
+        //        if (anEvent.Home.Name == anEvent.Away.Name)
+        //        {
+        //            ModelState.AddModelError("PostFetchError", $"The provided event {anEvent.Home.Name} - {anEvent.Away.Name} has two teams with the same name. This is not allowed.");
+        //            return View(rawEvents);
+        //        }
+
+        //        EventErrors evetErrors;
+        //        _sportingFixturesService.TryCreateEvent(anEvent, out evetErrors);
+
+        //    }
+
+        //    return RedirectToAction(nameof(Index));
+        //}
 
         //[ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any)]
         public string SuggestedTeams(string givenTeamName)
