@@ -44,23 +44,18 @@ namespace WebSportingFixtures.Controllers
                             ModelState.AddModelError("PostCreateTeamNameError",
                                 $"The team \"{team.Name}\" is already exists");
                             return View();
-                            break;
                         case TeamErrors.KnownNameAlreadyExists:
                             ModelState.AddModelError("PostCreateTeamKnownNameError",
                                 $"The team known as \"{team.KnownName}\" is already exists");
                             return View();
-                            break;
                         case TeamErrors.InvalidName:
                             return View();
-                            break;
                         case TeamErrors.InvalidKnownName:
                             return View();
-                            break;
                         case TeamErrors.Undefined:
                             ModelState.AddModelError("PostCreateTeamError",
                                 $"Team \"{team.Name}\" could not be inserted due to database error");
                             return View();
-                            break;
                     }
                 }
                 else
@@ -98,25 +93,19 @@ namespace WebSportingFixtures.Controllers
                         case TeamErrors.NameAlreadyExists:
                             ModelState.AddModelError("PostEditTeamNameError", $"The team \"{team.Name}\" is already exists");
                             return View(team);
-                            break;
                         case TeamErrors.KnownNameAlreadyExists:
                             ModelState.AddModelError("PostEditTeamKnownNameError", $"The team known as \"{team.KnownName}\" is already exists");
                             return View(team);
-                            break;
                         case TeamErrors.InvalidName:
                             return View(team);
-                            break;
                         case TeamErrors.InvalidKnownName:
                             return View(team);
-                            break;
                         case TeamErrors.IdDoesNotExists:
                             ModelState.AddModelError("PostEditTeamError", $"Team with id: {team.Id} does not exists");
                             return View(team);
-                            break;
                         case TeamErrors.Undefined:
                             ModelState.AddModelError("PostEditTeamError", $"Team \"{team.Name}\" could not be edited due to database error");
                             return View(team);
-                            break;
                     }
                 }
 
@@ -148,11 +137,9 @@ namespace WebSportingFixtures.Controllers
                     case TeamErrors.IdDoesNotExists:
                         ModelState.AddModelError("PostDeleteTeamError", $"Team with id: \"{id}\" does not exists");
                         return View();
-                        break;
                     case TeamErrors.Undefined:
                         ModelState.AddModelError("PostDeleteTeamError", $"Team with id: \"{id}\" could not be deleted due to database error");
                         return View();
-                        break;
 
                 }
             }

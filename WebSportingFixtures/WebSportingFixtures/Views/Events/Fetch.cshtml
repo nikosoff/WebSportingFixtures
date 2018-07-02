@@ -6,93 +6,80 @@
 }
 
 @Html.AntiForgeryToken()
-
-@*@foreach (var key in  Model.map.Keys)
-    {
-        var home = @key + ".home";
-        var away = @key + ".away";
-        var status = @key + ".status";
-        <form method="post" autocomplete="off">
-            <input type="text" id=@home value=@Model.map[key].Item1 name=@home onclick="getSuggestions(@home, 'click')" oninput="getSuggestions(@home, 'input')"@(Model.map[key].Item4 ? "disabled" : "")  />
-            <input type="text" id=@away value=@Model.map[key].Item2 name=@away onclick="getSuggestions(@away, 'click')" oninput="getSuggestions(@away, 'input')" @(Model.map[key].Item4 ? "disabled" : "") />
-            <select name=@status asp-items="Html.GetEnumSelectList<Status>()" @(Model.map[key].Item4 ? "disabled" : "") ></select>
-            <input type="submit" name="approve" value="Approve" @(Model.map[key].Item4 ? "disabled" : "")  />
-        </form>
-    }
-    <a asp-action="Index">Back</a>*@
-
-<form method="post" autocomplete="off">
-    <input type="submit" name="approve" value="Approve" />
-</form>
-
-@for (int i = 0; i < Model.Count(); i++)
+@if (Model.Count() != 0)
 {
-    var homeId = "homeTeam" + @i;
-    var awayId = "awayTeam" + @i;
-    var statusId = "eventStatus" + @i;
-    var approve = "approve" + @i;
-
-    <input type="text" id=@homeId value="@Model.ElementAt(i).Home" name="@homeId" onclick="getSuggestions(@homeId, 'click')" oninput="getSuggestions(@homeId, 'input')" />
-    <input type="text" id=@awayId value="@Model.ElementAt(i).Away" name="@awayId" onclick="getSuggestions(@awayId, 'click')" oninput="getSuggestions(@awayId, 'input')" />
-    <select id="@statusId" name="@statusId" asp-items="Html.GetEnumSelectList<Status>()"></select>
-    <input id="@approve" type="submit" name="approve" value="Approve" onclick="sendRequest(@homeId, @awayId, @statusId, @approve)" />
-    <br />
-    <br />
-}
-
-
-
-@*@Html.ValidationSummary()
-
-
-    @if (Model.Count() > 0)
+    for (int i = 0; i < Model.Count(); i++)
     {
-        <form method="post" autocomplete="off">
-            @for (int i = 0; i < Model.Count(); i++)
-            {
-                var homeId = "homeTeam" + @i;
-                var awayId = "awayTeam" + @i;
-                var eventStatus = "eventStatus" + @i;
+        var homeElement = "homeTeam" + @i;
+        var awayElement = "awayTeam" + @i;
+        var statusElement = "eventStatus" + @i;
+        var approveElement = "approve" + @i;
+        var errorElement = "event" + @i;
 
-                <input type="text" id=@homeId value="@Model.ElementAt(i).Home" name="@homeId" onclick="getSuggestions(@homeId, 'click')" oninput="getSuggestions(@homeId, 'input')" />
-                <input type="text" id=@awayId value="@Model.ElementAt(i).Away" name="@awayId" onclick="getSuggestions(@awayId, 'click')" oninput="getSuggestions(@awayId, 'input')" />
-                <select name="@eventStatus" asp-items="Html.GetEnumSelectList<Status>()"></select>
-                <br />
-                <br />
-            }
-            <input type="submit" name="save" value="Save" />
-            <a asp-action="Index">Back</a>
-        </form>
+        <input type="text" id=@homeElement value="@Model.ElementAt(i).Home" name="@homeElement" onclick="getSuggestions(@homeElement, 'click')" oninput="getSuggestions(@homeElement, 'input')" />
+        <input type="text" id=@awayElement value="@Model.ElementAt(i).Away" name="@awayElement" onclick="getSuggestions(@awayElement, 'click')" oninput="getSuggestions(@awayElement, 'input')" />
+        <select id="@statusElement" name="@statusElement" asp-items="Html.GetEnumSelectList<Status>()"></select>
+        <input id="@approveElement" type="submit" name="approve" value="Approve" onclick="sendRequest(@homeElement, @awayElement, @statusElement, @approveElement, @errorElement, @Model.Count())" />
+        <span id="@errorElement"></span>
+        <br />
+        <br />
     }
-    else
-    {
-        <h3>The provider can not load events! Please try again later.</h3>
-        <a asp-action="Index">Back</a>
-    }*@
+    <a id="backButton" asp-action="Index">Back</a>
+}
+else
+{
+    <h2>All the events has been stored</h2>
+    <a asp-action="Index">Back</a>
+}
 
 <script>
 
-    function sendRequest(homeId, awayId, statusId, approve) {
+    countApproved = 0;
 
-        var csrf = document.getElementsByName("__RequestVerificationToken")[0].value;
+    function sendRequest(homeElement, awayElement, statusElement, approveElement, errorElement, numberOfRawEvents) {
 
+        countApproved++;
+        var antiforgeryToken = document.getElementsByName("__RequestVerificationToken")[0].value;
         var request = new XMLHttpRequest();
-        request.onreadystatechange = function (response) {
+        request.onreadystatechange = function () {
             if (request.readyState === 4 && request.status === 200) {
 
-                homeId.disabled = true;
-                awayId.disabled = true;
-                statusId.disabled = true;
-                approve.disabled = true;
+                var response = JSON.parse(request.responseText);
 
+                if (response.status == "Success") {
+                    homeElement.disabled = true;
+                    awayElement.disabled = true;
+                    statusElement.disabled = true;
+                    approveElement.disabled = true;
+                    errorElement.innerHTML = "The event has been stored";
+                    if (countApproved === numberOfRawEvents)
+                        document.getElementById("backButton").click();
+                }
+                else {
+                    countApproved--;
+                    if (response.status === "HomeTeamDoesNotExists")
+                        errorElement.innerHTML = "Home team with name \"" + homeElement.value + "\" does not exist in our database";
+                    else if (response.status === "AwayTeamDoesNotExists")
+                        errorElement.innerHTML = "Away team with name \"" + awayElement.value + "\" does not exist in our database";
+                    else if (response.status === "EventAlreadyExists")
+                        errorElement.innerHTML = "The event " + homeElement.value + " - " + awayElement.value + " is already exists";
+                    else if (response.status === "EventWithSameTeams")
+                        errorElement.innerHTML = "The provided event " + homeElement.value + " - " + awayElement.value + " has two teams with the same name.This is not allowed.";
+                    else if (response.status === "InvalidHomeTeamName")
+                        errorElement.innerHTML = "The name of home team is required";
+                    else if (response.status === "InvalidAwayTeamName")
+                        errorElement.innerHTML = "The name of away team is required";
+                    else if (response.status === "Undefined")
+                        errorElement.innerHTML = "Event \"" + homeElement.value + " - " + awayElement.value + "\" could not be inserted due to database error";
+                }
             }
         };
-        request.open('POST', 'http://localhost:51805/Events/Fetch', true);
+
+        request.open('POST', 'http://localhost:63933/Events/Fetch', true);
         request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         request.setRequestHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
         request.setRequestHeader("Upgrade-Insecure-Requests", "1");
-        request.setRequestHeader("__RequestVerificationToken", csrf);
-        request.send("__RequestVerificationToken="+csrf);
+        request.send("__RequestVerificationToken=" + antiforgeryToken + "&Home=" + homeElement.value + "&Away=" + awayElement.value + "&Status=" + statusElement.value);
 
     }
 
@@ -104,7 +91,7 @@
         request.onreadystatechange = function (response) {
             if (request.readyState === 4 && request.status === 200) {
 
-                let possibleTeams = JSON.parse(request.responseText);
+                var possibleTeams = JSON.parse(request.responseText);
                 $('#' + team.id).autocomplete({
                     minLength: 0,
                     source: function (request, response) {
@@ -120,7 +107,7 @@
             }
         };
 
-        request.open('GET', 'http://localhost:51805/Events/SuggestedTeams?givenTeamName=' + input.value, true);
+        request.open('GET', 'http://localhost:63933/Events/SuggestedTeams?givenTeamName=' + input.value, true);
         request.send(null);
 
     }
