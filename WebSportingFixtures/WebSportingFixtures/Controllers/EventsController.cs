@@ -202,7 +202,6 @@ namespace WebSportingFixtures.Controllers
             return View(rawEventsToReturned);
         }
 
-
         public class EventError
         {
             public string Status { get; set; }
@@ -233,12 +232,12 @@ namespace WebSportingFixtures.Controllers
                         case EventErrors.EventAlreadyExists:
                             return new EventError { Status = "EventAlreadyExists" };
                         case EventErrors.EventWithSameTeams:
-                            return new EventError { Status = "EventWithSameTeams" } ;
+                            return new EventError { Status = "EventWithSameTeams" };
                         case EventErrors.Undefined:
                             return new EventError { Status = "Undefined" };
                     }
                 }
-                return new EventError { Status = "Success" }; 
+                return new EventError { Status = "Success" };
             }
 
             if (string.IsNullOrEmpty(rawEvent.Home))
