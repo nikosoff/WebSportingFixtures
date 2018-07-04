@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using WebSportingFixtures.Core.Interfaces;
 using WebSportingFixtures.Core.Models;
 using WebSportingFixtures.Services;
@@ -98,7 +98,7 @@ namespace WebSportingFixtures.Controllers
 
             if (ModelState.IsValid)
             {
-                var newEvent = new Event { Id = eventViewModel.Id, Home = new Team { Name = eventViewModel.Home }, Away = new Team { Name = eventViewModel.Away}, Status = eventViewModel.Status };
+                var newEvent = new Event { Id = eventViewModel.Id, Home = new Team { Name = eventViewModel.Home }, Away = new Team { Name = eventViewModel.Away }, Status = eventViewModel.Status };
                 EventErrors eventErrors;
                 bool isEventEdited = _sportingFixturesService.TryEditEvent(newEvent, out eventErrors);
 
@@ -196,23 +196,29 @@ namespace WebSportingFixtures.Controllers
                 if (foundExistingEvent == null)
                 {
                     rawEventsToReturned.Add(rawEvent);
-                } 
+                }
 
             }
             return View(rawEventsToReturned);
         }
-        
-        
+
+
+        public class EventError
+        {
+            public string Status { get; set; }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public string Fetch([Bind(include: "Home, Away, Status")]RawEvent rawEvent)
+        public object Fetch([Bind(include: "Home, Away, Status")]RawEvent rawEvent)
         {
+
             if (ModelState.IsValid)
             {
                 var newEvent = new Event
                 {
-                    Home = new Team {Name = rawEvent.Home},
-                    Away = new Team {Name = rawEvent.Away},
+                    Home = new Team { Name = rawEvent.Home },
+                    Away = new Team { Name = rawEvent.Away },
                     Status = rawEvent.Status
                 };
                 var eventErrors = new EventErrors();
@@ -221,31 +227,31 @@ namespace WebSportingFixtures.Controllers
                     switch (eventErrors)
                     {
                         case EventErrors.HomeTeamDoesNotExists:
-                            return "{\"status\": \"HomeTeamDoesNotExists\"}";
+                            return new EventError { Status = "HomeTeamDoesNotExists" };
                         case EventErrors.AwayTeamDoesNotExists:
-                            return "{\"status\": \"AwayTeamDoesNotExists\"}";
+                            return new EventError { Status = "AwayTeamDoesNotExists" };
                         case EventErrors.EventAlreadyExists:
-                            return "{\"status\": \"EventAlreadyExists\"}";
+                            return new EventError { Status = "EventAlreadyExists" };
                         case EventErrors.EventWithSameTeams:
-                            return "{\"status\": \"EventWithSameTeams\"}";
+                            return new EventError { Status = "EventWithSameTeams" } ;
                         case EventErrors.Undefined:
-                            return "{\"status\": \"Undefined\"}";
+                            return new EventError { Status = "Undefined" };
                     }
                 }
-                return "{\"status\": \"Success\"}";
+                return new EventError { Status = "Success" }; 
             }
 
             if (string.IsNullOrEmpty(rawEvent.Home))
             {
-                return "{\"status\": \"InvalidHomeTeamName\"}";
+                return new EventError { Status = "InvalidHomeTeamName" };
             }
 
             if (string.IsNullOrEmpty(rawEvent.Away))
             {
-                return "{\"status\": \"InvalidAwayTeamName\"}";
+                return new EventError { Status = "InvalidAwayTeamName" };
             }
 
-            return "{\"status\": \"Undefined\"}";
+            return new EventError { Status = "Undefined" };
         }
 
         //[ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any)]
