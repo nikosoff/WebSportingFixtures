@@ -1,213 +1,98 @@
-﻿//using NUnit.Framework;
-//using Moq;
-//using WebSportingFixtures.Core.Interfaces;
-//using WebSportingFixtures.Core.Models;
-//using System.Linq;
+﻿using NUnit.Framework;
+using Moq;
+using WebSportingFixtures.Core.Interfaces;
+using WebSportingFixtures.Core.Models;
+using System.Linq;
 
-//namespace WebSportingFixtures.Services.Tests
-//{
-//    [TestFixture]
-//    class SportingFixturesServiceTests
-//    {
-//        private SportingFixturesService _sut;
+namespace WebSportingFixtures.Services.Tests
+{
+    [TestFixture]
+    class SportingFixturesServiceTests
+    {
+        public SportingFixturesServiceTests()
+        {
 
-//        public SportingFixturesServiceTests()
-//        {
+        }
 
-//            Mock<IStore> mockStore = new Mock<IStore>();
-//            Mock<ITextSimilarityAlgorithm> mockTextSimilarityAlgorithm =
-//                new Mock<ITextSimilarityAlgorithm>();
+        [Test]
+        public void TryCreateTeam_ProvideValidTeam_ReturnsTrueAndReturnsTeamErrorNone()
+        {
+            //Arrange
+            Mock<IStore> mockStore = new Mock<IStore>();
+            Mock<ITextSimilarityAlgorithm> mockTextSimilarityAlgorithm =
+                new Mock<ITextSimilarityAlgorithm>();
 
-//            mockStore
-//                .Setup(store => store.CreateTeam(It.Is<Team>(t => t.Name == "Random" && t.KnownName == "Random")))
-//                .Returns(true);
+            var sut = new SportingFixturesService(mockStore.Object, mockTextSimilarityAlgorithm.Object);
 
-//            mockStore
-//                .Setup(store => store.CreateTeam(It.Is<Team>(t => t == null || t.Name == "" || t.Name == null || t.KnownName == "" || t.KnownName == null)))
-//                .Returns(false);
+            var validTeam = new Team { Name = "Random", KnownName = "Random" };
+            bool expectedResult = true;
+            TeamError actualTeamError;
 
-//            mockStore
-//                .Setup(store => store.EditTeam(It.Is<Team>(t => t.Id == 1 && t.Name == "Random" && t.KnownName == "Random")))
-//                .Returns(true);
+            mockStore
+                .Setup(store => store.CreateTeam(It.Is<Team>(t => t.Name == validTeam.Name && t.KnownName == validTeam.KnownName)))
+                .Returns(validTeam);
 
-//            mockStore.
-//                Setup(store => store.GetAllTeams())
-//                .Returns(() => new Team[]
-//                {
-//                    new Team { Id = 1, Name = "Manchester United F.C.", KnownName = "Manchester United" },
-//                    new Team { Id = 2, Name = "FC Barcelona", KnownName = "Barcelona" },
-//                    new Team { Id = 3, Name = "Real Madrid C.F.", KnownName = "Real Madrid"}
-//                });
+            //Arrange
+            bool actualResult = sut.TryCreateTeam(new Team { Name = "Random", KnownName = "Random"}, out actualTeamError);
 
-//            _sut = new SportingFixturesService(mockStore.Object, mockTextSimilarityAlgorithm.Object);
-//        }
+            //Assert
+            Assert.AreEqual(expectedResult, actualResult);
+            Assert.AreEqual(TeamError.None, actualTeamError);
+        }
 
-//        [Test]
-//        public void CreateTeam_CreateNewTeamWithoutId_ReturnsTrue()
-//        {
-//            //Arrange
-//            var randomTeam = new Team { Name = "Random", KnownName = "Random" };
-//            bool expectedResult = true;
+        [TestCase(new object[] { "" })]
+        [TestCase(new object[] { null })]
+        public void TryCreateTeam_ProvideTeamWithInvalidName_ReturnsFalseAndReturnsTeamErrorInvalidName(string teamName)
+        {
+            //Arrange
+            Mock<IStore> mockStore = new Mock<IStore>();
+            Mock<ITextSimilarityAlgorithm> mockTextSimilarityAlgorithm =
+                new Mock<ITextSimilarityAlgorithm>();
 
-//            //Act
-//            bool actualResult = _sut.CreateTeam(randomTeam);
+            var sut = new SportingFixturesService(mockStore.Object, mockTextSimilarityAlgorithm.Object);
 
-//            //Assert
-//            Assert.AreEqual(expectedResult, actualResult);
-//        }
+            var randomTeam = new Team { Name = teamName, KnownName = "Random" };
+            bool expectedResult = false;
+            TeamError actualTeamError;
 
-//        [Test]
-//        public void CreateTeam_CreateNewTeamWithId_ReturnsTrue()
-//        {
-//            //Arrange
-//            var randomTeam = new Team { Id = 1, Name = "Random", KnownName = "Random" };
-//            bool expectedResult = true;
+            mockStore
+                .Setup(store => store.CreateTeam(It.Is<Team>(t => t.Name == randomTeam.Name && t.KnownName == randomTeam.KnownName)))
+                .Returns(randomTeam);
 
-//            //Act
-//            bool actualResult = _sut.CreateTeam(randomTeam);
+            //Arrange
+            bool actualResult = sut.TryCreateTeam(new Team { Name = teamName, KnownName = "Random" }, out actualTeamError);
 
-//            //Assert
-//            Assert.AreEqual(expectedResult, actualResult);
-//        }
+            //Assert
+            Assert.AreEqual(expectedResult, actualResult);
+            Assert.AreEqual(TeamError.InvalidName, actualTeamError);
+        }
 
-//        [Test]
-//        public void CreateTeam_CreateNullTeam_ReturnsFalse()
-//        {
-//            //Arrange
-//            Team randomTeam = null;
-//            bool expectedResult = false;
+        [TestCase(new object[] { "" })]
+        [TestCase(new object[] { null })]
+        public void TryCreateTeam_ProvideTeamWithInvalidKnownName_ReturnsFalseAndReturnsTeamErrorInvalidKnownName(string teamKnownName)
+        {
+            //Arrange
+            Mock<IStore> mockStore = new Mock<IStore>();
+            Mock<ITextSimilarityAlgorithm> mockTextSimilarityAlgorithm =
+                new Mock<ITextSimilarityAlgorithm>();
 
-//            //Act
-//            bool actualResult = _sut.CreateTeam(randomTeam);
+            var sut = new SportingFixturesService(mockStore.Object, mockTextSimilarityAlgorithm.Object);
 
-//            //Assert
-//            Assert.AreEqual(expectedResult, actualResult);
-//        }
+            var randomTeam = new Team { Name = "Random", KnownName = teamKnownName };
+            bool expectedResult = false;
+            TeamError actualTeamError;
 
-//        [TestCase(new object[]{ "" })]
-//        [TestCase(new object[] { null })]
-//        public void CreateTeam_CreateNewTeamWithInvalidName_ReturnsFalse(string teamName)
-//        {
-            
-//            Mock<IStore> mockStore = new Mock<IStore>();
+            mockStore
+                .Setup(store => store.CreateTeam(It.Is<Team>(t => t.Name == randomTeam.Name && t.KnownName == randomTeam.KnownName)))
+                .Returns(randomTeam);
 
-//            var randomTeam = new Team { Name = teamName, KnownName = "Random"};
+            //Arrange
+            bool actualResult = sut.TryCreateTeam(new Team { Name = "Random", KnownName = teamKnownName }, out actualTeamError);
 
-//            mockStore.Verify((store) => store.CreateTeam(randomTeam), Times.Never);
-//        }
+            //Assert
+            Assert.AreEqual(expectedResult, actualResult);
+            Assert.AreEqual(TeamError.InvalidKnownName, actualTeamError);
+        }
 
-//        [Test]
-//        public void CreateTeam_CreateNewTeamWithNullName_ReturnsFalse()
-//        {
-//            //Arrange
-//            var randomTeam = new Team { KnownName = "Random" };
-//            bool expectedResult = false;
-
-//            //Act
-//            bool actualResult = _sut.CreateTeam(randomTeam);
-
-//            //Assert
-//            Assert.AreEqual(expectedResult, actualResult);
-//        }
-
-//        [Test]
-//        public void CreateTeam_CreateNewTeamWithEmptyKnownName_ReutrnsFalse()
-//        {
-//            //Arrange
-//            var randomTeam = new Team { Name = "Random", KnownName = "" };
-//            bool expectedResult = false;
-
-//            //Act
-//            bool actualResult = _sut.CreateTeam(randomTeam);
-
-//            //Assert
-//            Assert.AreEqual(expectedResult, actualResult);
-//        }
-
-//        [Test]
-//        public void CreateTeam_CreateNewTeamWithNullKnownName_ReturnsFalse()
-//        {
-//            //Arrange
-//            var randomTeam = new Team { Name = "Random" };
-//            bool expectedResult = false;
-
-//            //Act
-//            bool actualResult = _sut.CreateTeam(randomTeam);
-
-//            //Assert
-//            Assert.AreEqual(expectedResult, actualResult);
-//        }
-
-//        //[Test]
-//        //public void CreateTeam_CreateNewTeamThatAlreadyExists_ReturnsFalse()
-//        //{
-
-//        //}
-
-//        //[Test]
-//        //public void CreateTeam_CreateNewTeamWithNameThatAlreadyExists_ReturnsFalse()
-//        //{
-
-//        //}
-
-//        //[Test]
-//        //public void CreateTeam_CreateNewTeamWithKnownNameThatAlreadyExists_ReturnsFalse()
-//        //{
-
-//        //}
-
-//        [Test]
-//        public void EditTeam_EditExistingTeamWithId_ReturnsTrue()
-//        {
-//            //Arrange
-//            var existingTeam = new Team { Id = 1, Name = "Random", KnownName = "Random" };
-//            bool expectedResult = true;
-
-//            //Act
-//            bool actualResult = _sut.EditTeam(existingTeam);
-
-//            //Assert
-//            Assert.AreEqual(expectedResult, actualResult);
-//        }
-
-//        [Test]
-//        public void EditTeam_EditExistingTeamWithoutId_ReturnsFalse()
-//        {
-//            //Arrange
-//            var existingTeam = new Team { Name = "Random", KnownName = "Random" };
-//            bool expectedResult = false;
-
-//            //Act
-//            bool actualResult = _sut.EditTeam(existingTeam);
-
-//            //Assert
-//            Assert.AreEqual(expectedResult, actualResult);
-//        }
-
-
-//        [Test]
-//        public void GetAllTeams_GetAllStoredTeams_ReturnNonEmptyResult()
-//        {
-//            //Arrange
-
-//            //Act
-//            var storedTeams = _sut.GetAllTeams();
-            
-//            //Assert
-//            Assert.AreNotEqual(0, storedTeams.Count());
-//        }
-
-//        [Test]
-//        public void GetAllTeams_GetFirstStoredTeam_ReturnNonNullResult()
-//        {
-//            //Arrange
-            
-//            //Act
-//            var actualTeam = _sut.GetAllTeams().FirstOrDefault();
-
-//            //Assert
-//            Assert.IsNotNull(actualTeam);
-//        }
-
-//    }
-//}
+    }
+}

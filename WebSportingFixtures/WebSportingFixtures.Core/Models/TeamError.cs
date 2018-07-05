@@ -6,16 +6,14 @@ using System.Threading.Tasks;
 
 namespace WebSportingFixtures.Core.Models
 {
-    public enum EventErrors
+    public enum TeamError
     {
         None = 0,
         Undefined,
-        EventAlreadyExists,
-        HomeTeamDoesNotExists,
-        AwayTeamDoesNotExists,
-        EventWithSameTeams,
-        InvalidHomeTeamName,
-        InvalidAwayTeamName,
+        InvalidName, 
+        InvalidKnownName,
+        NameAlreadyExists,
+        KnownNameAlreadyExists,
         IdDoesNotExists
     }
 }

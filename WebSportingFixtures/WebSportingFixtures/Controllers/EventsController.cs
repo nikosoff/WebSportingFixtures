@@ -42,32 +42,32 @@ namespace WebSportingFixtures.Controllers
             {
                 var newEvent = new Event { Home = new Team { Name = eventViewModel.Home }, Away = new Team { Name = eventViewModel.Away }, Status = eventViewModel.Status };
 
-                EventErrors eventErrors;
+                Core.Models.EventError eventErrors;
                 bool isEventCreated = _sportingFixturesService.TryCreateEvent(newEvent, out eventErrors);
 
                 if (!isEventCreated)
                 {
                     switch (eventErrors)
                     {
-                        case EventErrors.EventAlreadyExists:
+                        case Core.Models.EventError.EventAlreadyExists:
                             ModelState.AddModelError("PostCreateEventError", $"The event {eventViewModel.Home} - {eventViewModel.Away} is already exists");
-                            return View(eventViewModel);
-                        case EventErrors.HomeTeamDoesNotExists:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.HomeTeamDoesNotExists:
                             ModelState.AddModelError("PostCreateEventError", $"Home team with name {eventViewModel.Home} does not exist in our database");
-                            return View(eventViewModel);
-                        case EventErrors.AwayTeamDoesNotExists:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.AwayTeamDoesNotExists:
                             ModelState.AddModelError("PostCreateEventError", $"Away team with name {eventViewModel.Away} does not exist in our database");
-                            return View(eventViewModel);
-                        case EventErrors.EventWithSameTeams:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.EventWithSameTeams:
                             ModelState.AddModelError("PostCreateEventError", $"The provided event {eventViewModel.Home} - {eventViewModel.Away} has two teams with the same name. This is not allowed.");
-                            return View(eventViewModel);
-                        case EventErrors.InvalidHomeTeamName:
-                            return View(eventViewModel);
-                        case EventErrors.InvalidAwayTeamName:
-                            return View(eventViewModel);
-                        case EventErrors.Undefined:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.InvalidHomeTeamName:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.InvalidAwayTeamName:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.Undefined:
                             ModelState.AddModelError("PostCreateEventError", $"Event \"{eventViewModel.Home} - {eventViewModel.Away}\" could not be inserted due to database error");
-                            return View(eventViewModel);
+                            return base.View(eventViewModel);
                     }
                 }
 
@@ -99,35 +99,35 @@ namespace WebSportingFixtures.Controllers
             if (ModelState.IsValid)
             {
                 var newEvent = new Event { Id = eventViewModel.Id, Home = new Team { Name = eventViewModel.Home }, Away = new Team { Name = eventViewModel.Away }, Status = eventViewModel.Status };
-                EventErrors eventErrors;
+                Core.Models.EventError eventErrors;
                 bool isEventEdited = _sportingFixturesService.TryEditEvent(newEvent, out eventErrors);
 
                 if (!isEventEdited)
                 {
                     switch (eventErrors)
                     {
-                        case EventErrors.EventAlreadyExists:
+                        case Core.Models.EventError.EventAlreadyExists:
                             ModelState.AddModelError("PostEditEventError", $"The event {eventViewModel.Home} - {eventViewModel.Away} is already exists");
-                            return View(eventViewModel);
-                        case EventErrors.HomeTeamDoesNotExists:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.HomeTeamDoesNotExists:
                             ModelState.AddModelError("PostEditEventError", $"Home team with name \"{eventViewModel.Home}\" does not exist in our database");
-                            return View(eventViewModel);
-                        case EventErrors.AwayTeamDoesNotExists:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.AwayTeamDoesNotExists:
                             ModelState.AddModelError("PostEditEventError", $"Away team with name \"{eventViewModel.Away}\" does not exist in our database");
-                            return View(eventViewModel);
-                        case EventErrors.EventWithSameTeams:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.EventWithSameTeams:
                             ModelState.AddModelError("PostEditEventError", $"The provided event {eventViewModel.Home} - {eventViewModel.Away} has two teams with the same name. This is not allowed.");
-                            return View(eventViewModel);
-                        case EventErrors.InvalidHomeTeamName:
-                            return View(eventViewModel);
-                        case EventErrors.InvalidAwayTeamName:
-                            return View(eventViewModel);
-                        case EventErrors.IdDoesNotExists:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.InvalidHomeTeamName:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.InvalidAwayTeamName:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.IdDoesNotExists:
                             ModelState.AddModelError("PostEditEventError", $"Event with id: {eventViewModel.Id} does not exists");
-                            return View(eventViewModel);
-                        case EventErrors.Undefined:
+                            return base.View(eventViewModel);
+                        case Core.Models.EventError.Undefined:
                             ModelState.AddModelError("PostEditEventError", $"Event \"{eventViewModel.Home} - {eventViewModel.Away}\" could not be inserted due to database error");
-                            return View(eventViewModel);
+                            return base.View(eventViewModel);
                     }
                 }
 
@@ -151,19 +151,19 @@ namespace WebSportingFixtures.Controllers
         public IActionResult DeleteConfirmation(int id)
         {
 
-            EventErrors eventErrors;
+            Core.Models.EventError eventErrors;
             bool isEventDeleted = _sportingFixturesService.TryDeleteEvent(id, out eventErrors);
 
             if (!isEventDeleted)
             {
                 switch (eventErrors)
                 {
-                    case EventErrors.IdDoesNotExists:
+                    case Core.Models.EventError.IdDoesNotExists:
                         ModelState.AddModelError("PostDeleteEventError", $"The event with id: {id} does not exists");
-                        return View();
-                    case EventErrors.Undefined:
+                        return base.View();
+                    case Core.Models.EventError.Undefined:
                         ModelState.AddModelError("PostDeleteEventError", $"The event with id: {id} could not be deleted due to database error");
-                        return View();
+                        return base.View();
                 }
             }
 
@@ -202,14 +202,14 @@ namespace WebSportingFixtures.Controllers
             return View(rawEventsToReturned);
         }
 
-        public class EventError
+        public class EventCreationErrors
         {
             public string Status { get; set; }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public object Fetch([Bind(include: "Home, Away, Status")]RawEvent rawEvent)
+        public EventCreationErrors Fetch([Bind(include: "Home, Away, Status")]RawEvent rawEvent)
         {
 
             if (ModelState.IsValid)
@@ -220,37 +220,37 @@ namespace WebSportingFixtures.Controllers
                     Away = new Team { Name = rawEvent.Away },
                     Status = rawEvent.Status
                 };
-                var eventErrors = new EventErrors();
+                var eventErrors = new Core.Models.EventError();
                 if (!_sportingFixturesService.TryCreateEvent(newEvent, out eventErrors))
                 {
                     switch (eventErrors)
                     {
-                        case EventErrors.HomeTeamDoesNotExists:
-                            return new EventError { Status = "HomeTeamDoesNotExists" };
-                        case EventErrors.AwayTeamDoesNotExists:
-                            return new EventError { Status = "AwayTeamDoesNotExists" };
-                        case EventErrors.EventAlreadyExists:
-                            return new EventError { Status = "EventAlreadyExists" };
-                        case EventErrors.EventWithSameTeams:
-                            return new EventError { Status = "EventWithSameTeams" };
-                        case EventErrors.Undefined:
-                            return new EventError { Status = "Undefined" };
+                        case Core.Models.EventError.HomeTeamDoesNotExists:
+                            return new EventCreationErrors { Status = "HomeTeamDoesNotExists" };
+                        case Core.Models.EventError.AwayTeamDoesNotExists:
+                            return new EventCreationErrors { Status = "AwayTeamDoesNotExists" };
+                        case Core.Models.EventError.EventAlreadyExists:
+                            return new EventCreationErrors { Status = "EventAlreadyExists" };
+                        case Core.Models.EventError.EventWithSameTeams:
+                            return new EventCreationErrors { Status = "EventWithSameTeams" };
+                        case Core.Models.EventError.Undefined:
+                            return new EventCreationErrors { Status = "Undefined" };
                     }
                 }
-                return new EventError { Status = "Success" };
+                return new EventCreationErrors { Status = "Success" };
             }
 
             if (string.IsNullOrEmpty(rawEvent.Home))
             {
-                return new EventError { Status = "InvalidHomeTeamName" };
+                return new EventCreationErrors { Status = "InvalidHomeTeamName" };
             }
 
             if (string.IsNullOrEmpty(rawEvent.Away))
             {
-                return new EventError { Status = "InvalidAwayTeamName" };
+                return new EventCreationErrors { Status = "InvalidAwayTeamName" };
             }
 
-            return new EventError { Status = "Undefined" };
+            return new EventCreationErrors { Status = "Undefined" };
         }
 
         //[ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any)]

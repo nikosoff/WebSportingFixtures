@@ -33,26 +33,26 @@ namespace WebSportingFixtures.Controllers
 
             if (ModelState.IsValid)
             {
-                TeamErrors teamErrors;
+                TeamError teamErrors;
                 bool isTeamCreated = _sportingFixturesService.TryCreateTeam(team, out teamErrors);
 
                 if (!isTeamCreated)
                 {
                     switch (teamErrors)
                     {
-                        case TeamErrors.NameAlreadyExists:
+                        case TeamError.NameAlreadyExists:
                             ModelState.AddModelError("PostCreateTeamNameError",
                                 $"The team \"{team.Name}\" is already exists");
                             return View();
-                        case TeamErrors.KnownNameAlreadyExists:
+                        case TeamError.KnownNameAlreadyExists:
                             ModelState.AddModelError("PostCreateTeamKnownNameError",
                                 $"The team known as \"{team.KnownName}\" is already exists");
                             return View();
-                        case TeamErrors.InvalidName:
+                        case TeamError.InvalidName:
                             return View();
-                        case TeamErrors.InvalidKnownName:
+                        case TeamError.InvalidKnownName:
                             return View();
-                        case TeamErrors.Undefined:
+                        case TeamError.Undefined:
                             ModelState.AddModelError("PostCreateTeamError",
                                 $"Team \"{team.Name}\" could not be inserted due to database error");
                             return View();
@@ -83,27 +83,27 @@ namespace WebSportingFixtures.Controllers
             if (ModelState.IsValid)
             {
 
-                TeamErrors teamErrors;
+                TeamError teamErrors;
                 bool isTeamEdited = _sportingFixturesService.TryEditTeam(team, out teamErrors);
 
                 if (!isTeamEdited)
                 {
                     switch (teamErrors)
                     {
-                        case TeamErrors.NameAlreadyExists:
+                        case TeamError.NameAlreadyExists:
                             ModelState.AddModelError("PostEditTeamNameError", $"The team \"{team.Name}\" is already exists");
                             return View(team);
-                        case TeamErrors.KnownNameAlreadyExists:
+                        case TeamError.KnownNameAlreadyExists:
                             ModelState.AddModelError("PostEditTeamKnownNameError", $"The team known as \"{team.KnownName}\" is already exists");
                             return View(team);
-                        case TeamErrors.InvalidName:
+                        case TeamError.InvalidName:
                             return View(team);
-                        case TeamErrors.InvalidKnownName:
+                        case TeamError.InvalidKnownName:
                             return View(team);
-                        case TeamErrors.IdDoesNotExists:
+                        case TeamError.IdDoesNotExists:
                             ModelState.AddModelError("PostEditTeamError", $"Team with id: {team.Id} does not exists");
                             return View(team);
-                        case TeamErrors.Undefined:
+                        case TeamError.Undefined:
                             ModelState.AddModelError("PostEditTeamError", $"Team \"{team.Name}\" could not be edited due to database error");
                             return View(team);
                     }
@@ -126,7 +126,7 @@ namespace WebSportingFixtures.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            TeamErrors teamErrors;
+            TeamError teamErrors;
 
             bool isTeamDeleted = _sportingFixturesService.TryDeleteTeam(id, out teamErrors);
 
@@ -134,10 +134,10 @@ namespace WebSportingFixtures.Controllers
             {
                 switch (teamErrors)
                 {
-                    case TeamErrors.IdDoesNotExists:
+                    case TeamError.IdDoesNotExists:
                         ModelState.AddModelError("PostDeleteTeamError", $"Team with id: \"{id}\" does not exists");
                         return View();
-                    case TeamErrors.Undefined:
+                    case TeamError.Undefined:
                         ModelState.AddModelError("PostDeleteTeamError", $"Team with id: \"{id}\" could not be deleted due to database error");
                         return View();
 
