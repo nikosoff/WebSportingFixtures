@@ -220,20 +220,20 @@ namespace WebSportingFixtures.Controllers
                     Away = new Team { Name = rawEvent.Away },
                     Status = rawEvent.Status
                 };
-                var eventErrors = new Core.Models.EventError();
+                var eventErrors = new EventError();
                 if (!_sportingFixturesService.TryCreateEvent(newEvent, out eventErrors))
                 {
                     switch (eventErrors)
                     {
-                        case Core.Models.EventError.HomeTeamDoesNotExists:
+                        case EventError.HomeTeamDoesNotExists:
                             return new EventCreationErrors { Status = "HomeTeamDoesNotExists" };
-                        case Core.Models.EventError.AwayTeamDoesNotExists:
+                        case EventError.AwayTeamDoesNotExists:
                             return new EventCreationErrors { Status = "AwayTeamDoesNotExists" };
-                        case Core.Models.EventError.EventAlreadyExists:
+                        case EventError.EventAlreadyExists:
                             return new EventCreationErrors { Status = "EventAlreadyExists" };
-                        case Core.Models.EventError.EventWithSameTeams:
+                        case EventError.EventWithSameTeams:
                             return new EventCreationErrors { Status = "EventWithSameTeams" };
-                        case Core.Models.EventError.Undefined:
+                        case EventError.Undefined:
                             return new EventCreationErrors { Status = "Undefined" };
                     }
                 }
